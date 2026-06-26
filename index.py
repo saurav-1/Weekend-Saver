@@ -24,6 +24,7 @@ HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>The Weekend Saver MVP</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #111; }
@@ -39,6 +40,17 @@ HTML_TEMPLATE = """
         .answer-space { margin-top: 14px; color: #555; }
         .answer-line { border-bottom: 1px solid #999; height: 28px; margin-bottom: 10px; }
         .answer-key { margin-top: 50px; padding-top: 20px; border-top: 2px dashed #ccc; color: #444; }
+        .student-info { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 30px; font-size: 18px; }
+        .student-info span { min-width: 0; }
+
+        @media (max-width: 600px) {
+            body { margin: 0; padding: 12px; max-width: none; }
+            .form-container { padding: 18px; }
+            .worksheet { padding: 20px; }
+            .student-info { display: block; font-size: 16px; }
+            .student-info span { display: block; margin-bottom: 12px; }
+            h1 { font-size: 26px; line-height: 1.2; }
+        }
         
         @page {
             size: A4;
@@ -100,7 +112,7 @@ HTML_TEMPLATE = """
         <button class="no-print" onclick="window.print()" style="background: #2563eb; margin-bottom: 30px;">📄 Save as PDF / Print</button>
         
         <h1 style="text-align: center; margin-bottom: 30px;">{{ data.title }}</h1>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 18px;">
+        <div class="student-info">
             <span><strong>Name:</strong> ___________________________</span>
             <span><strong>Date:</strong> _________________</span>
         </div>
@@ -202,7 +214,7 @@ def generate_worksheet_data(grade, subject, topic, question_count, question_type
             {{
                 "question": "The actual question text",
                 "type": "{question_type}",
-                "options": ["Only include this field for multiple_choice questions"],
+                "options": ["For multiple_choice only: four option texts without A/B/C/D prefixes. For other question types, use an empty array."],
                 "answer": "The correct answer or sample answer"
             }}
         ]
@@ -252,7 +264,10 @@ def index():
         grade = request.form.get("grade", "").strip()
         subject = request.form.get("subject", "").strip()
         topic = request.form.get("topic", "").strip()
-        question_count = int(request.form.get("question_count", "5"))
+        try:
+            question_count = int(request.form.get("question_count", "5"))
+        except ValueError:
+            question_count = 5
         if question_count not in [5, 10, 15]:
             question_count = 5
         question_type = request.form.get("question_type", "multiple_choice")
